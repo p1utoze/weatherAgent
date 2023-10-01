@@ -23,8 +23,8 @@ class BookTableResponse(Model):
     success: bool
 
 
-customer = Agent(name="Customer")
-restaurant = Agent(name="Restaurant")
+customer = Agent(name="Customer", seed="customer recovery seed")
+restaurant = Agent(name="Restaurant", seed="restaurant recovery seed")
 
 
 @customer.on_interval(period=3.0, messages=QueryTableRequest)
@@ -38,7 +38,7 @@ async def interval(ctx: Context):
 
 @customer.on_message(QueryTableResponse, replies=BookTableRequest)
 async def handle_query_response(ctx: Context, __sender: str, response: QueryTableResponse):
-    if response.status == TableStatus.FREE:
+    if response.status == TableStatus.FREE.value:
         ctx.logger.info("Table is free. Attempting to reserve...")
         await ctx.send(restaurant.address, BookTableRequest(table_number=43))
     else:
@@ -56,10 +56,11 @@ async def handle_book_response(ctx: Context, __sender: str, response: BookTableR
 @restaurant.on_message(model=QueryTableRequest, replies=QueryTableResponse)
 async def handle_query_request(ctx: Context, sender: str, request: QueryTableRequest):
     if ctx.storage.has(str(request.table_number)):
-        status = TableStatus.RESERVED
+        status = TableStatus.RESERVED.value
     else:
-        status = TableStatus.FREE
-    
+        status = TableStatus.FREE.value
+
+    print(status)
     ctx.logger.info(f"Table {request.table_number} is {status}")
     await ctx.send(sender, QueryTableResponse(status=status))
 
@@ -76,7 +77,7 @@ async def handle_book_request(ctx: Context, sender: str, request: BookTableReque
 
 
 if __name__ == "__main__":
-    bureau = Bureau()
+    bureau = Bureau(port=5050)
     bureau.add(customer)
     bureau.add(restaurant)
     bureau.run()
