@@ -3,11 +3,12 @@ import json
 import os
 import socket
 from dotenv import load_dotenv
-from settings import ENV_PATH
+from .settings import ENV_PATH
 load_dotenv(ENV_PATH)
 
 _extra_params = ['wind_degree', 'wind_dir', 'pressure_mb', 'pressure_in',
                  'vis_km', 'vis_miles', 'uv', 'gust_mph', 'gust_kph']
+
 
 def valid_ip(addr):
     try:
@@ -17,26 +18,17 @@ def valid_ip(addr):
         return False
 
 
-def fetch_realtime_api(city: str = None, ip: str = None, coord: tuple[float, float] = None):
+def fetch_realtime_api(query: str):
     """
     Fetches weather data from weatherapi.com based on the given parameters as queries.
     Make sure to set the WEATHER_API_KEY environment variable before running this function.
     (You can get the key from https://www.weatherapi.com/)
-    :param city: defaults to None
-    :type city: str
-    :param ip:
-    :type ip: str
-    :param coord:
-    :type coord: tuple[float, float]
-    :return: dict
+    :param query: The query string to be passed to the API.
+    :type query: str
     """
     key = os.getenv("WEATHER_API_KEY")
-    if city:
-        query = city.capitalize()
-    elif coord:
-        query = ",".join(map(str, coord))
-    else:
-        query = ip if valid_ip(ip) else "auto:ip"
+    if not key:
+        raise Exception("WEATHER_API_KEY not set in environment variables.")
 
     response = requests.get(
         f"http://api.weatherapi.com/v1/current.json?key={key}&q={query}&aqi=no")
