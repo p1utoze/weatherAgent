@@ -7,7 +7,7 @@ license = "MIT-License"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
+python = "<empty>"
 requests = "*"
 fastapi = "*"
 uvicorn = "*"
