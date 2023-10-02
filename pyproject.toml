@@ -8,12 +8,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-
-[tool.poetry.group.dev.dependencies]
 requests = "^2.31.0"
 fastapi = "^0.103.2"
 uvicorn = "^0.20.0"
 uagents = "^0.6.2"
+
 
 [build-system]
 requires = ["poetry-core"]
