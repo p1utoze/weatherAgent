@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "weatheragent"
+version = "0.1.0"
+description = "A weather agent notifier which alerts extreme drop in temperatures built using AI micro-agents"
+authors = ["Adithya Awati <aditya.n.awati@gmail.com>"]
+license = "MIT-License"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+requests = "^2.31.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
