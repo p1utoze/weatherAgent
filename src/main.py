@@ -1,36 +1,69 @@
 import uvicorn
-from uagents import Agent, Model, Context, Bureau
-from fastapi import FastAPI, Request, Query
-from .utils.api import fetch_realtime_api, valid_ip
-temp_monitor = Agent(name='temp monitor')
+import multiprocessing
+from fastapi import FastAPI, Request, Query, Body, Depends
+from src.utils.api import fetch_realtime_api, valid_ip
+from src.messages.temperature import TemperatureLimit, WeatherFields, Alert
 from uagents import Bureau, Context, Agent, Model
+from src.agents.monitor import query_request, temp_monitor, weather
 
 app = FastAPI(title="Temperature Monitor")
+main_agent = Agent(name='main agent', seed='main agent seed')
 
 
-@app.on_event("startup")
-async def startup_event():
-    pass
+class UserValues(Model):
+    min_value: int
+    max_value: int
+
+
+@main_agent.on_message(model=Alert)
+async def send_alert(ctx: Context, alert: Alert):
+    print(f"Alert: {alert.message}")
 
 
 @app.get("/")
-async def root(q: str = Query(None, include_in_schema=False), type: str = Query(None, include_in_schema=False)):
+async def root(
+        q: str = Query(None, include_in_schema=False),
+        qtype: str = Query(None, include_in_schema=False),
+        ):
     if q:
         query = None
-        if type == 'city':
+        if qtype == 'city':
             query = q.capitalize()
-        elif type == 'loc':
+        elif qtype == 'loc':
             query = str(q).strip()
-        elif type == 'ip':
+        elif qtype == 'ip':
             query = q if valid_ip(q) else "auto:ip"
 
-        print(query)
         data = fetch_realtime_api(query)
         return data
-
     return {"message": "Hello World"}
 
+
+@app.post("/limit")
+async def root(values: UserValues = Body(...)):
+    await query_request(main_agent.ctx, values.dict())
+    return {"Min Temperature": values.min_value, "Max Temperature": values.max_value}
+
+
+def run_bureau():
+    bureau = Bureau(port=5050)
+    bureau.add(weather)
+    bureau.add(temp_monitor)
+    bureau.add(main_agent)
+    bureau.run()
+
+
+def run_uvicorn():
+    uvicorn.run(app, port=8080)
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, port=5050)
+    bureau_process = multiprocessing.Process(target=run_bureau)
+    uvicorn_process = multiprocessing.Process(target=run_uvicorn)
+    bureau_process.start()
+    uvicorn_process.start()
+    bureau_process.join()
+    uvicorn_process.join()
+
 
 
