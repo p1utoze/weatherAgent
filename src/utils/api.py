@@ -4,6 +4,8 @@ import os
 import socket
 from dotenv import load_dotenv
 from .settings import ENV_PATH
+from typing import Any
+
 load_dotenv(ENV_PATH)
 
 _extra_params = ['wind_degree', 'wind_dir', 'pressure_mb', 'pressure_in',
@@ -29,7 +31,7 @@ def fetch_realtime_api(query: str):
     key = os.getenv("WEATHER_API_KEY")
     if not key:
         raise Exception("WEATHER_API_KEY not set in environment variables.")
-
+    print(query)
     response = requests.get(
         f"http://api.weatherapi.com/v1/current.json?key={key}&q={query}&aqi=no")
     try:
