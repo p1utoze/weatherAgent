@@ -2,7 +2,7 @@ import uvicorn
 import multiprocessing
 from datetime import datetime
 from fastapi import FastAPI, Request, Query, Body, Depends
-from src.utils.api import fetch_realtime_api, valid_ip
+from src.utils.api import fetch_realtime_api, valid_ip, get_data_from_store
 from src.messages.temperature import TemperatureLimit, WeatherFields, Alert
 from uagents import Bureau, Context, Agent, Model
 from src.agents.monitor import query_request, temp_monitor, weather
@@ -15,11 +15,6 @@ class UserValues(Model):
     min_value: int
     max_value: int
     location: str
-
-
-@main_agent.on_message(model=Alert)
-async def send_alert(ctx: Context, alert: Alert):
-    print(f"Alert: {alert.message}")
 
 
 @app.get("/")
@@ -35,9 +30,14 @@ async def root(
             query = str(q).strip()
         elif qtype == 'ip':
             query = q if valid_ip(q) else "auto:ip"
-        
-        data = fetch_realtime_api(query)
-        return data
+
+        if temp_monitor.storage.has("query"):
+            alert = await get_data_from_store('alert')
+            time = await get_data_from_store('timestamp')
+            return {"alert": alert, "timestamp": time}
+        else:
+            return {"alert_set": False}
+
     return {"message": "Hello World"}
 
 
