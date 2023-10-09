@@ -2,10 +2,8 @@ import uvicorn
 import multiprocessing
 from datetime import datetime
 from fastapi import FastAPI, Request, Query, Body, Depends
-from src.utils.api import fetch_realtime_api, valid_ip, get_data_from_store
-from src.messages.temperature import TemperatureLimit, WeatherFields, Alert
 from uagents import Bureau, Context, Agent, Model
-from src.agents.monitor import query_request, temp_monitor, weather
+from src.agents.monitor import temp_monitor, weather, get_data_from_store
 
 app = FastAPI(title="Temperature Monitor")
 main_agent = Agent(name='main agent', seed='main agent seed')
@@ -22,28 +20,26 @@ async def root(
         q: str = Query(None, include_in_schema=False),
         qtype: str = Query(None, include_in_schema=False),
         ):
-    if q:
-        query = None
-        if qtype == 'city':
-            query = q.capitalize()
-        elif qtype == 'loc':
-            query = str(q).strip()
-        elif qtype == 'ip':
-            query = q if valid_ip(q) else "auto:ip"
+    # if q:
+    #     query = None
+    #     if qtype == 'city':
+    #         query = q.capitalize()
+    #     elif qtype == 'loc':
+    #         query = str(q).strip()
+    #     elif qtype == 'ip':
+    #         query = q if valid_ip(q) else "auto:ip"
 
-        if temp_monitor.storage.has("query"):
-            alert = await get_data_from_store('alert')
-            time = await get_data_from_store('timestamp')
-            return {"alert": alert, "timestamp": time}
-        else:
-            return {"alert_set": False}
-
-    return {"message": "Hello World"}
+    if temp_monitor.storage.has("query"):
+        alert = await get_data_from_store('alert')
+        time = await get_data_from_store('timestamp')
+        print(alert, time)
+        return {"alert": alert, "timestamp": time}
+    else:
+        return {"alert_set": False}
 
 
 @app.post("/limit")
 async def root(values: UserValues = Body(...)):
-
     temp_monitor.storage.set("query", {
         'location': values.location,
         'temperature': {

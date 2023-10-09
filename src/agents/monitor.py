@@ -1,7 +1,6 @@
 from src.utils.api import (
     fetch_realtime_api,
-    get_data_from_store,
-    process_query
+    process_query,
 )
 from uagents import Bureau, Context, Agent, Model, Protocol
 from src.messages.temperature import TemperatureLimit, Alert, WeatherFields, CurrentTemperature
@@ -10,16 +9,23 @@ weather = Agent(name="bob", seed="bob recovery phrase")
 
 MAIN_AGENT_ADDR = "agent1q2x8962wqplupvr45v27sh2njnrjlj7uqnkt6tglvut34pmjscme798lf37"
 
-
-@temp_monitor.on_interval(period=2.0, messages=WeatherFields)
-async def query_request(ctx: Context):
+async def get_data_from_store(key: str):
     try:
-        result = await get_data_from_store("temperature")
-    except KeyError:
-        print('temperature not found in storage')
-    query = 'London'
-    ctx.logger.info(f"Checking temperature in {query}")
-    await ctx.send(weather.address, message=WeatherFields(LOCATION=query))
+        result = temp_monitor.storage.get("query")
+        return result[key]
+    except (KeyError, TypeError):
+        # print('temperature not found in storage')
+        return ''
+
+
+@temp_monitor.on_interval(period=5.0, messages=WeatherFields)
+async def query_request(ctx: Context):
+    query = await get_data_from_store("location")
+    if query and query != "string":
+        ctx.logger.info(f"Checking temperature in {query}")
+        await ctx.send(weather.address, message=WeatherFields(LOCATION=query))
+    # else:
+    #     ctx.logger.info('Location not found in storage')
 
 
 @temp_monitor.on_event('shutdown')
@@ -38,8 +44,10 @@ async def query_response(ctx: Context, sender: str, msg: CurrentTemperature):
         elif msg.value < d['min']:
             message = "low"
         if message:
+            d = temp_monitor.storage.get("query")
+            d['alert'] = message
+            temp_monitor.storage.set("query", d)
             ctx.logger.info(f"message recieved from weather agent: Temperature is too {message}")
-            # await ctx.send(MAIN_AGENT_ADDR, message=Alert(message=message))
 
 
 @weather.on_message(WeatherFields, replies={CurrentTemperature})
