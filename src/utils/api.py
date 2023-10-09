@@ -5,6 +5,7 @@ import socket
 from dotenv import load_dotenv
 from .settings import ENV_PATH
 from typing import Any
+from src.agents.monitor import temp_monitor
 
 load_dotenv(ENV_PATH)
 
@@ -47,6 +48,26 @@ def process_realtime_data(response: dict, query: str = None):
     for unwanted in _extra_params:
         del data['response'][unwanted]
     return data
+
+async def process_query(query: str | tuple[float, float]):
+    if query:
+        if type == 'city':
+            query = query.capitalize()
+        elif type == 'loc':
+            query = str(query).strip()
+        elif type == 'ip':
+            query = query if valid_ip(query) else "auto:ip"
+
+        return query
+
+
+async def get_data_from_store(key: str) -> dict:
+    try:
+        result = temp_monitor.storage.get("query")
+        return result[key]
+    except KeyError:
+        print('temperature not found in storage')
+        return None
 
 
 if __name__ == "__main__":
