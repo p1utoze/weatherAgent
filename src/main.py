@@ -1,11 +1,10 @@
 import uvicorn
 import multiprocessing
-import pathlib
 import orjson
-from src.utils.settings import PROJECT_ROOT, PARENT_DIR
+from src.utils.settings import PROJECT_ROOT
 from datetime import datetime
-from fastapi import FastAPI, Request, Query, Body, Depends
-from uagents import Bureau, Context, Agent, Model
+from fastapi import FastAPI, Query, Body
+from uagents import Bureau
 from src.agents.monitor import temp_monitor, weather, get_data_from_store
 from src.messages.temperature import UserValues
 
@@ -24,7 +23,7 @@ async def root(
         time = await get_data_from_store('timestamp', path=JSON_DATA)
         return {"alert": alert, "timestamp": time}
     else:
-        return {"alert_set": False}
+        return {"alert": None}
 
 
 @app.post("/limit")
@@ -37,7 +36,7 @@ async def root(values: UserValues = Body(...)):
                             'max': values.max_value,
                             'unit': 'celsius'
                         },
-                        'alert': None,
+                        'alert': False,
                         'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         }),
             option=orjson.OPT_INDENT_2
