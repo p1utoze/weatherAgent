@@ -1,5 +1,6 @@
 import uvicorn
 import multiprocessing
+from datetime import datetime
 from fastapi import FastAPI, Request, Query, Body, Depends
 from src.utils.api import fetch_realtime_api, valid_ip
 from src.messages.temperature import TemperatureLimit, WeatherFields, Alert
@@ -13,6 +14,7 @@ main_agent = Agent(name='main agent', seed='main agent seed')
 class UserValues(Model):
     min_value: int
     max_value: int
+    location: str
 
 
 @main_agent.on_message(model=Alert)
@@ -33,7 +35,7 @@ async def root(
             query = str(q).strip()
         elif qtype == 'ip':
             query = q if valid_ip(q) else "auto:ip"
-
+        
         data = fetch_realtime_api(query)
         return data
     return {"message": "Hello World"}
@@ -41,12 +43,22 @@ async def root(
 
 @app.post("/limit")
 async def root(values: UserValues = Body(...)):
-    await query_request(main_agent.ctx, values.dict())
+
+    temp_monitor.storage.set("query", {
+        'location': values.location,
+        'temperature': {
+            'min': values.min_value,
+            'max': values.max_value,
+            'unit': 'celsius'
+        },
+        'alert': None,
+        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    })
     return {"Min Temperature": values.min_value, "Max Temperature": values.max_value}
 
 
 def run_bureau():
-    bureau = Bureau(port=5050)
+    bureau = Bureau(endpoint="http://127.0.0.1:5060/alert", port=5050)
     bureau.add(weather)
     bureau.add(temp_monitor)
     bureau.add(main_agent)
@@ -58,12 +70,13 @@ def run_uvicorn():
 
 
 if __name__ == "__main__":
-    bureau_process = multiprocessing.Process(target=run_bureau)
-    uvicorn_process = multiprocessing.Process(target=run_uvicorn)
-    bureau_process.start()
-    uvicorn_process.start()
-    bureau_process.join()
-    uvicorn_process.join()
+    # bureau_process = multiprocessing.Process(target=run_bureau)
+    # uvicorn_process = multiprocessing.Process(target=run_uvicorn)
+    # bureau_process.start()
+    # uvicorn_process.start()
+    # bureau_process.join()
+    # uvicorn_process.join()
+    run_bureau()
 
 
 
