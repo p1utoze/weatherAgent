@@ -19,18 +19,30 @@ async def process_query(query: str | tuple[float, float]):
         return query
 
 
-@temp_monitor.on_interval(period=1.0, messages=WeatherFields)
-async def query_request(ctx: Context, data: dict = None):
-    if data:
-        ctx.storage.set("temperature", data)
-        query = 'London'
-        ctx.logger.info(f"Checking temperature in {query}")
-        await ctx.send(weather.address, message=WeatherFields(LOCATION=query))
+async def get_data_from_store(key: str) -> dict:
+    try:
+        result = temp_monitor.storage.get("query")
+        return result['temperature']
+    except KeyError:
+        print('temperature not found in storage')
+        return None
+
+
+@temp_monitor.on_interval(period=2.0, messages=WeatherFields)
+async def query_request(ctx: Context):
+    try:
+        result = await get_data_from_store("temperature")
+    except KeyError:
+        print('temperature not found in storage')
+    query = 'London'
+    ctx.logger.info(f"Checking temperature in {query}")
+    await ctx.send(weather.address, message=WeatherFields(LOCATION=query))
 
 
 @temp_monitor.on_message(model=CurrentTemperature)
 async def query_response(ctx: Context, sender: str, msg: CurrentTemperature):
-    d = ctx.storage.get("temperature")
+    d = await get_data_from_store("temperature")
+    print(d)
     if d:
         message = ""
         if msg.value > d['max']:
@@ -39,7 +51,7 @@ async def query_response(ctx: Context, sender: str, msg: CurrentTemperature):
             message = "low"
         if message:
             ctx.logger.info(f"message recieved from weather agent: Temperature is too {message}")
-            await ctx.send(MAIN_AGENT_ADDR, message=Alert(message=message))
+            # await ctx.send(MAIN_AGENT_ADDR, message=Alert(message=message))
 
 
 @weather.on_message(WeatherFields, replies={CurrentTemperature})
