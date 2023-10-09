@@ -1,38 +1,27 @@
 import uvicorn
 import multiprocessing
+import pathlib
+import orjson
+from src.utils.settings import PROJECT_ROOT, PARENT_DIR
 from datetime import datetime
 from fastapi import FastAPI, Request, Query, Body, Depends
 from uagents import Bureau, Context, Agent, Model
 from src.agents.monitor import temp_monitor, weather, get_data_from_store
+from src.messages.temperature import UserValues
 
 app = FastAPI(title="Temperature Monitor")
-main_agent = Agent(name='main agent', seed='main agent seed')
 
-
-class UserValues(Model):
-    min_value: int
-    max_value: int
-    location: str
+JSON_DATA = PROJECT_ROOT / 'src' / 'data.json'
 
 
 @app.get("/")
 async def root(
         q: str = Query(None, include_in_schema=False),
         qtype: str = Query(None, include_in_schema=False),
-        ):
-    # if q:
-    #     query = None
-    #     if qtype == 'city':
-    #         query = q.capitalize()
-    #     elif qtype == 'loc':
-    #         query = str(q).strip()
-    #     elif qtype == 'ip':
-    #         query = q if valid_ip(q) else "auto:ip"
-
-    if temp_monitor.storage.has("query"):
-        alert = await get_data_from_store('alert')
-        time = await get_data_from_store('timestamp')
-        print(alert, time)
+):
+    if JSON_DATA.exists():
+        alert = await get_data_from_store('alert', path=JSON_DATA)
+        time = await get_data_from_store('timestamp', path=JSON_DATA)
         return {"alert": alert, "timestamp": time}
     else:
         return {"alert_set": False}
@@ -40,16 +29,19 @@ async def root(
 
 @app.post("/limit")
 async def root(values: UserValues = Body(...)):
-    temp_monitor.storage.set("query", {
-        'location': values.location,
-        'temperature': {
-            'min': values.min_value,
-            'max': values.max_value,
-            'unit': 'celsius'
-        },
-        'alert': None,
-        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    })
+    with open(JSON_DATA, 'wb') as f:
+        f.write(orjson.dumps(
+            dict(query={'location': values.location,
+                        'temperature': {
+                            'min': values.min_value,
+                            'max': values.max_value,
+                            'unit': 'celsius'
+                        },
+                        'alert': None,
+                        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        }),
+            option=orjson.OPT_INDENT_2
+        ))
     return {"Min Temperature": values.min_value, "Max Temperature": values.max_value}
 
 
@@ -57,7 +49,6 @@ def run_bureau():
     bureau = Bureau(endpoint="http://127.0.0.1:5060/alert", port=5050)
     bureau.add(weather)
     bureau.add(temp_monitor)
-    bureau.add(main_agent)
     bureau.run()
 
 
@@ -66,13 +57,10 @@ def run_uvicorn():
 
 
 if __name__ == "__main__":
-    # bureau_process = multiprocessing.Process(target=run_bureau)
-    # uvicorn_process = multiprocessing.Process(target=run_uvicorn)
-    # bureau_process.start()
-    # uvicorn_process.start()
-    # bureau_process.join()
-    # uvicorn_process.join()
+    bureau_process = multiprocessing.Process(target=run_bureau)
+    uvicorn_process = multiprocessing.Process(target=run_uvicorn)
+    bureau_process.start()
+    uvicorn_process.start()
+    bureau_process.join()
+    uvicorn_process.join()
     run_bureau()
-
-
-
