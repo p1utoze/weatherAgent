@@ -9,7 +9,7 @@ location. The agent will notify the user when the temperature is out of the rang
 
 ![demo](assets/demo.gif)
 
-**The theme of the app responds in real-time.** The background changes based on the weather condition of the location. 
+**The theme of the app responds in real-time.** The background changes based on the time-zone of the location. 
 It changes to Night or Day theme based on the timing of the users location.
 
 ## The API
