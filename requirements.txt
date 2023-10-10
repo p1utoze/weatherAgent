@@ -1,0 +1,6 @@
+fastapi
+orjson
+python-dotenv
+Requests
+uagents
+uvicorn

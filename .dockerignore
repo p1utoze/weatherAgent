@@ -1,3 +1,7 @@
 .github
 poetry.lock
 pyproject.toml
+weatherAgent/
+.env
+.git
+.idea
