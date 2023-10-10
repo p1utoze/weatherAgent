@@ -52,15 +52,8 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       #----------------------------------------------
-      # iActivate the environment and launch the script
+      # Upload Build artifiacts 
       #----------------------------------------------
-
-      - name: Run shell script
-        run: |
-          source .venv/bin/activate
-          chmod +x script.sh
-          ./script.sh
-      
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v2
         with:
@@ -90,3 +83,13 @@ jobs:
           app-name: 'ThermoGuardian'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D2E0A80E75B444F1AE680F7FC631E5F6 }}
+
+      #----------------------------------------------
+      # Activate the environment and launch the script
+      #----------------------------------------------
+
+      - name: Run shell script
+        run: |
+          source .venv/bin/activate
+          chmod +x script.sh
+          ./script.sh
