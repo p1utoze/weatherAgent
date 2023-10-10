@@ -49,12 +49,13 @@ WEATHER_API_KEY=...
 
 ## Run the API
 The FAST API server can be run in following ways:
-1. To run locally: Execute the bash script `script.sh`
+1. The ThermoGuardian Web app can be accessed through this [url](https://weather-agent-client.vercel.app/)
+2. To run locally: Execute the bash script `script.sh`
 ```
 $ sh script.sh
 ```
 
-2. Run with docker: Use to deploy on a cloud container service. Pull the docker image file and run the container using below commands:
+3. Run with docker: Use to deploy on a cloud container service. Pull the docker image file and run the container using below commands:
 ```
 $ docker pull p1utoze/thermoguardian:latest
 $ docker run -p 8080:8080 --env-file .env p1utoze/thermoguardian
