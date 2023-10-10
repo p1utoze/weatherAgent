@@ -1,11 +1,10 @@
 import requests
-import json
 import os
 import socket
 from dotenv import load_dotenv
 from .settings import ENV_PATH
-from typing import Any
 
+# Load the environment variables or from configured .env file
 load_dotenv(ENV_PATH)
 
 _extra_params = ['wind_degree', 'wind_dir', 'pressure_mb', 'pressure_in',
@@ -13,6 +12,9 @@ _extra_params = ['wind_degree', 'wind_dir', 'pressure_mb', 'pressure_in',
 
 
 def valid_ip(addr):
+    """Check for valid IP address.
+    :param addr: IP address to be checked.
+    """
     try:
         socket.inet_aton(addr)
         return True
@@ -40,7 +42,14 @@ def fetch_realtime_api(query: str):
         print('There was a problem: %s' % exc)
 
 
-def process_realtime_data(response: dict, query: str = None):
+def process_realtime_data(response: dict, query: str = None) -> dict:
+    """
+    Process the response from the weatherapi.com API.
+    The response data is processed and returned in a dictionary based on the query.
+    :param response: JSON response from the API.
+    :param query: Location query string set by the user.
+    :return: dict
+    """
     data = {'query': query, 'response': response['location']}
     for key in response['current']:
         data['response'][key] = response['current'][key]
@@ -50,6 +59,15 @@ def process_realtime_data(response: dict, query: str = None):
 
 
 async def process_query(query: str | tuple[float, float]):
+    """
+    Process the query string and return the query string in the required format.
+    The query accepts the following format types:
+    1. city: City name(e.g. Bengaluru)
+    2. loc: Decimal Latitude and Longitude co-ordinates (e.g. 12.9716, 77.5946)
+    3. ip: IP address (fetched from the request)
+    :param query: str | tuple[float, float]
+    :return: str ( Formatted query string )
+    """
     if query:
         if type == 'city':
             query = query.capitalize()
