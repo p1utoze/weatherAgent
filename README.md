@@ -5,7 +5,7 @@ A weather agent notifier generated and monitored by FetchAI's micro Agents.
 ## Web App
 [ThermoGuardian](https://weather-agent-client.vercel.app/) has been developed using ReactJS and deployed on Vercel.  
 The web app is a simple UI to interact with the agent. It allows the user to set the temperature threshold and the 
-location. The agent will notify the user when the temperature is out of the range-bounds.
+location. The agent will notify the user when the temperature is out of the range of bounds i.e IF the temperature exceed the maximum limit or falls below the minimum limit.
 
 ![demo](assets/demo.gif)
 
@@ -15,7 +15,9 @@ It changes to Night or Day theme based on the timing of the users location.
 ## The API
 The API is developed using FastAPI. It has simple REST API endpoints:
 * `/`: GET Method. Fetch the alert message processed by the Agents and monitoring the temperature of user set Location continuously in the backend server.
-* '/limit': POST Method. Store the User Query for the MIN and MAX temperature limit values along with location.
+* `/limit`: POST Method. Store the User Query for the MIN and MAX temperature limit values along with location.
+
+<br>
 
 ## GET STARTED 
 #### Prerequisites
