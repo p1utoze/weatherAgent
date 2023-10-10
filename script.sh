@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
 
-# RUN THE FASTAPI server
+# RUN THE FASTAPI server and the Bureau agents
 python -m src.main
-
-# RUN THE fetch.ai Bureau
