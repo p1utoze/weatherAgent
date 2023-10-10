@@ -11,9 +11,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Create a virtual environment
 COPY . .
 
-# Copy environment variables
-ENV WEATHER_API_KEY "b45b0576a0834094b9380951230110"
-
 # Update the shell script permission to executable
 RUN chmod +x script.sh
 
