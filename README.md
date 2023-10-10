@@ -47,7 +47,7 @@ WEATHER_API_KEY=...
 
 <br>
 
-#### Run the API
+## Run the API
 The FAST API server can be run in following ways:
 1. To run locally: Execute the bash script `script.sh`
 ```
