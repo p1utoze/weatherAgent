@@ -49,7 +49,7 @@ WEATHER_API_KEY=...
 
 ## Run the API
 The FAST API server can be run in following ways:
-1. The ThermoGuardian Web app can be accessed through this [url](https://weather-agent-client.vercel.app/)
+1. The ThermoGuardian Web app can be accessed through this [url](https://weather-agent-client.vercel.app/) which is a single page app implementing the required features in the frontend.
 2. To run locally: Execute the bash script `script.sh`
 ```
 $ sh script.sh
