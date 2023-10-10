@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
 # RUN THE FASTAPI server
-uvicorn src.main:app
+python -m src.main
 
 # RUN THE fetch.ai Bureau
