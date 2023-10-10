@@ -13,6 +13,7 @@ fastapi = "*"
 uvicorn = "*"
 uagents = ">=0.6.0"
 python-dotenv = "^1.0.0"
+orjson = "^3.9.7"
 
 
 [build-system]
