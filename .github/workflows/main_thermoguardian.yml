@@ -52,6 +52,14 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       #----------------------------------------------
+      # Change the launch script permission to executable
+      #----------------------------------------------
+
+      - name: Update shell script permissions
+        run: |
+          chmod +x script.sh
+
+      #----------------------------------------------
       # Upload Build artifiacts 
       #----------------------------------------------
       - name: Upload artifact for deployment jobs
@@ -60,7 +68,7 @@ jobs:
           name: python-app
           path: |
             . 
-            !.venv/  
+            !.venv/ 
 
   deploy:
     runs-on: ubuntu-latest
@@ -83,11 +91,3 @@ jobs:
           app-name: 'ThermoGuardian'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D2E0A80E75B444F1AE680F7FC631E5F6 }}
-
-      #----------------------------------------------
-      # Activate the environment and launch the script
-      #----------------------------------------------
-
-      - name: Update shell script permissions
-        run: |
-          chmod +x script.sh
