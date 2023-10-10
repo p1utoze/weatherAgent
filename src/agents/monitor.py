@@ -8,7 +8,7 @@ import orjson
 from src.messages.temperature import WeatherFields, CurrentTemperature, UserValues
 from src.utils.settings import PROJECT_ROOT
 temp_monitor = Agent(name="temp", seed="alice recovery phrase")
-weather = Agent(name="bob", seed="bob recovery phrase")
+weather = Agent(name="weather", seed="bob recovery phrase")
 
 
 DATA_PATH = PROJECT_ROOT / 'src' / 'data.json'
@@ -28,10 +28,7 @@ async def get_data_from_store(key: str, path: Path):
 async def query_request(ctx: Context):
     query = await get_data_from_store("location", path=DATA_PATH)
     if query and query != "string":
-        ctx.logger.info(f"Checking temperature in {query}")
         await ctx.send(weather.address, message=WeatherFields(LOCATION=query))
-    # else:
-    #     ctx.logger.info('Location not found in storage')
 
 
 @temp_monitor.on_message(model=CurrentTemperature)
@@ -74,8 +71,7 @@ async def fetch_weather_metrics(ctx: Context, sender: str, msg: WeatherFields):
 if __name__ == "__main__":
     '''
     This is the main function that runs the agents ONLY. This tests the agents functionality withing the uAgents
-    ecosystem under bureau. 
-    >>> python -m src.agents.temp_monitor
+    ecosystem under bureau.
     '''
     bureau = Bureau(endpoint="http://127.0.0.1:5060/alert", port=5060)
     bureau.add(weather)

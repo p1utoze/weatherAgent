@@ -4,11 +4,22 @@ import orjson
 from src.utils.settings import PROJECT_ROOT
 from datetime import datetime
 from fastapi import FastAPI, Query, Body
+from fastapi.middleware.cors import CORSMiddleware
 from uagents import Bureau
 from src.agents.monitor import temp_monitor, weather, get_data_from_store
 from src.messages.temperature import UserValues
 
 app = FastAPI(title="Temperature Monitor")
+
+origins = ['*']
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 JSON_DATA = PROJECT_ROOT / 'src' / 'data.json'
 
@@ -45,7 +56,7 @@ async def root(values: UserValues = Body(...)):
 
 
 def run_bureau():
-    bureau = Bureau(endpoint="http://0.0.0.0:5060/alert", port=5050)
+    bureau = Bureau(endpoint="http://0.0.0.0:5050/alert", port=5050)
     bureau.add(weather)
     bureau.add(temp_monitor)
     bureau.run()
@@ -63,3 +74,8 @@ if __name__ == "__main__":
     bureau_process.join()
     uvicorn_process.join()
     run_bureau()
+
+@app.on_event("shutdown")
+async def startup_event():
+    if JSON_DATA.exists():
+        JSON_DATA.unlink()
