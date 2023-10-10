@@ -31,7 +31,7 @@ def fetch_realtime_api(query: str):
     key = os.getenv("WEATHER_API_KEY")
     if not key:
         raise Exception("WEATHER_API_KEY not set in environment variables.")
-    print(query)
+
     response = requests.get(
         f"http://api.weatherapi.com/v1/current.json?key={key}&q={query}&aqi=no")
     try:
@@ -61,6 +61,5 @@ async def process_query(query: str | tuple[float, float]):
         return query
 
 
-
 if __name__ == "__main__":
-    print(fetch_realtime_api(city='Bengaluru'))
+    print(fetch_realtime_api(query='Bengaluru'))

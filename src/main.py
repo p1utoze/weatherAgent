@@ -45,14 +45,14 @@ async def root(values: UserValues = Body(...)):
 
 
 def run_bureau():
-    bureau = Bureau(endpoint="http://127.0.0.1:5060/alert", port=5050)
+    bureau = Bureau(endpoint="http://0.0.0.0:5060/alert", port=5050)
     bureau.add(weather)
     bureau.add(temp_monitor)
     bureau.run()
 
 
 def run_uvicorn():
-    uvicorn.run(app, port=8080)
+    uvicorn.run(app, port=8080, host='0.0.0.0')
 
 
 if __name__ == "__main__":
